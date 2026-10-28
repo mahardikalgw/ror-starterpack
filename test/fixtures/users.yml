@@ -1,0 +1,2 @@
+# Intentionally empty: users require a workspace, so tests build records through
+# test/support/dashboard_data.rb instead of fixtures.

@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+require "rubygems"
+require "bundler/setup"
+
+# The Rails-generated binstub forces `--ensure-latest`, which performs a network
+# version check before scanning. When the release feed is slow or unreachable,
+# Brakeman aborts with `undefined method 'date' for nil` and no security scan runs
+# (observed: 16m timeout then failure in bin/ci). That made the security gate depend
+# on network availability rather than on the code. Pass --ensure-latest explicitly
+# when you actually want the version check.
+
+load Gem.bin_path("brakeman", "brakeman")

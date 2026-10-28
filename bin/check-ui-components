@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Enforces the component-inventory contract (spec FR-001, FR-010, FR-011, FR-012):
+#
+#   INV-1  no raw interactive element outside app/javascript/components/ui
+#   INV-2  no focus ring utility anywhere in the frontend
+#   INV-3  every library component has at least one import site
+#
+# Exit 0 when clean, 1 when any violation is found.
+
+ROOT = File.expand_path("..", __dir__)
+UI_DIR = File.join(ROOT, "app/javascript/components/ui")
+
+RAW_ELEMENTS = [
+  [ /<button\b/,          "raw interactive element; use a component from components/ui" ],
+  [ /<input\b/,           "raw interactive element; use a component from components/ui" ],
+  [ /<select\b/,          "raw interactive element; use a component from components/ui" ],
+  [ /<textarea\b/,        "raw interactive element; use a component from components/ui" ]
+].freeze
+
+RING_UTILITIES = [
+  [ /focus-visible:ring/, "focus ring utility; the focus policy is outline:none (see FR-011)" ],
+  [ /\bfocus:ring-/,       "focus ring utility; the focus policy is outline:none (see FR-011)" ]
+].freeze
+
+ScannedFile = Struct.new(:path, :lines)
+
+scanned = Dir.glob([
+  File.join(ROOT, "app/javascript/pages/**/*.tsx"),
+  File.join(ROOT, "app/javascript/layouts/**/*.tsx"),
+  File.join(ROOT, "app/javascript/components/**/*.tsx")
+]).reject { |path| path.start_with?("#{UI_DIR}/") }.sort.map do |path|
+  ScannedFile.new(path, File.readlines(path))
+end
+
+violations = []
+
+scanned.each do |file|
+  relative = file.path.delete_prefix("#{ROOT}/")
+
+  file.lines.each_with_index do |line, index|
+    (RAW_ELEMENTS + RING_UTILITIES).each do |pattern, message|
+      violations << "#{relative}:#{index + 1}: #{message}" if line.match?(pattern)
+    end
+  end
+end
+
+# INV-3: every library component must have at least one import site. Imports from
+# inside the library count too (e.g. toggle-group imports toggle), otherwise a
+# composition-only component would be reported as an orphan.
+component_files = Dir.glob(File.join(UI_DIR, "*.tsx")).sort
+sources = Dir.glob(File.join(ROOT, "app/javascript/**/*.tsx")).sort
+             .map { |path| File.read(path) }
+             .join("\n")
+
+component_files.each do |component_path|
+  name = File.basename(component_path, ".tsx")
+  next if sources.include?("components/ui/#{name}")
+
+  relative = component_path.delete_prefix("#{ROOT}/")
+  violations << "#{relative}:1: component has no import site; remove it or use it (FR-010)"
+end
+
+if violations.empty?
+  puts "check-ui-components: #{component_files.size} components, 0 violations"
+  exit 0
+end
+
+violations.sort.each { |violation| puts violation }
+puts "check-ui-components: #{component_files.size} components, #{violations.size} violations"
+exit 1

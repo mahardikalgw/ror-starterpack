@@ -1,0 +1,139 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource-variable/inter';
+
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/forms';
+
+/* Reference palette: soft grey canvas, white cards, indigo/violet primary,
+   teal positive deltas, rose negative deltas. Light theme only. */
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.976 0.003 264);
+  --foreground: oklch(0.21 0.02 264);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.02 264);
+  --primary: oklch(0.51 0.22 275);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.97 0.005 264);
+  --secondary-foreground: oklch(0.32 0.02 264);
+  --muted: oklch(0.968 0.004 264);
+  --muted-foreground: oklch(0.55 0.02 264);
+  --accent: oklch(0.955 0.02 275);
+  --accent-foreground: oklch(0.35 0.12 275);
+  --destructive: oklch(0.58 0.2 15);
+  --destructive-foreground: oklch(0.99 0 0);
+  --positive: oklch(0.62 0.11 180);
+  --positive-foreground: oklch(0.32 0.07 180);
+  --negative: oklch(0.6 0.18 15);
+  --negative-foreground: oklch(0.4 0.15 15);
+  --border: oklch(0.922 0.005 264);
+  --input: oklch(0.922 0.005 264);
+  --ring: oklch(0.51 0.22 275);
+  --chart-1: oklch(0.51 0.22 275);
+  --chart-2: oklch(0.62 0.11 180);
+  --chart-3: oklch(0.66 0.17 320);
+  --chart-4: oklch(0.72 0.15 85);
+  --chart-5: oklch(0.6 0.18 15);
+  --sidebar: oklch(0.99 0 0);
+  --sidebar-foreground: oklch(0.21 0.02 264);
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-positive: var(--positive);
+  --color-positive-foreground: var(--positive-foreground);
+  --color-negative: var(--negative);
+  --color-negative-foreground: var(--negative-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Focus indicators removed by request: no ring utility and no browser
+     outline on any focusable element. Note that this removes the visible
+     keyboard focus indicator required by spec FR-043 / SC-009. */
+  :focus,
+  :focus-visible {
+    outline: none;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Respect the user's reduced-motion preference (FR-046). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Focus styling for form controls — deliberately UNLAYERED and last.
+
+   @tailwindcss/forms paints its own focus treatment on text inputs: it swaps the
+   border colour to a blue ring colour and adds a box-shadow ring. Rules declared
+   outside a cascade layer outrank every layered rule (@layer base included), so
+   this wins regardless of source order or specificity — which an in-layer override
+   did not reliably do.
+
+   The app only renders <input> through the Input component (the Checkbox is a Radix
+   button, not an input), so a broad element selector is safe here.
+   --------------------------------------------------------------------------- */
+input:focus,
+input:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible {
+  border-color: var(--input);
+  box-shadow: none;
+  outline: none;
+  outline-offset: 0;
+}
